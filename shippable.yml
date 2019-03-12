@@ -1,0 +1,104 @@
+resources:
+  - name: node_sh_repo
+    type: gitRepo
+    integration: avinci_gh
+    versionTemplate:
+      sourceName: shippable/node
+      branch: master
+
+jobs:
+  - name: node_file_pack
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: node_sh_repo
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: node_pack
+          runtime:
+            options:
+              env:
+                - CONTEXT: "node"
+                - TAG_VER: "master"
+                - S3_URL: "s3://shippable-artifacts/node"
+                - WEB_URL: "https://s3.amazonaws.com/shippable-artifacts/node"
+                - RES_REPO: "node_sh_repo"
+          script:
+            - REPO_COMMIT=$(shipctl get_resource_version_key "$RES_REPO" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "$RES_REPO")
+            - |
+               TAR_FILENAME="$CONTEXT-$TAG_VER.tar.gz"
+               git archive --format=tar.gz --output="/tmp/$TAR_FILENAME" --prefix=$CONTEXT/ $TAG_VER
+               aws s3 cp --acl public-read "/tmp/$TAR_FILENAME" "$S3_URL/$TAG_VER/"
+            - |
+               ZIP_FILENAME="$CONTEXT-$TAG_VER.zip"
+               git archive --format=zip --output="/tmp/$ZIP_FILENAME" $TAG_VER
+               aws s3 cp --acl public-read "/tmp/$ZIP_FILENAME" "$S3_URL/$TAG_VER/"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "TAG_VER=$TAG_VER" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "WEB_URL=$WEB_URL" "S3_URL=$S3_URL" "TAR_FILENAME=$TAR_FILENAME" "ZIP_FILENAME=$ZIP_FILENAME"
+
+  - name: node_repo_file_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: node_file_pack
+        switch: off
+      - IN: node_sh_repo
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - IN: shipit_gh_ssh
+        switch: off
+      - TASK:
+          name: node_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - CONTEXT: "node"
+                - RES_REPO: "node_sh_repo"
+                - RES_FILE: "node_file_pack"
+                - GIT_PATH: "git@github.com:Shippable/node.git"
+          script:
+            - TAG_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               UP_TAR_FILENAME=$(shipctl get_resource_version_key "$RES_FILE" "TAR_FILENAME")
+               UP_ZIP_FILENAME=$(shipctl get_resource_version_key "$RES_FILE" "ZIP_FILENAME")
+               UP_TAG_VER=$(shipctl get_resource_version_key "$RES_FILE" "TAG_VER")
+               S3_URL=$(shipctl get_resource_version_key "$RES_FILE" "S3_URL")
+               WEB_URL=$(shipctl get_resource_version_key "$RES_FILE" "WEB_URL")
+            - |
+               TAR_FILENAME=$CONTEXT-$TAG_VER.tar.gz
+               aws s3 cp --acl public-read "$S3_URL/$UP_TAG_VER/$UP_TAR_FILENAME" "$S3_URL/$TAG_VER/$TAR_FILENAME"
+            - |
+               ZIP_FILENAME=$CONTEXT-$TAG_VER.zip
+               aws s3 cp --acl public-read "$S3_URL/$UP_TAG_VER/$UP_ZIP_FILENAME" "$S3_URL/$TAG_VER/$ZIP_FILENAME"
+            - |
+               pushd $(shipctl get_resource_meta "shipit_gh_ssh")
+                 shipctl get_json_value integration.json 'privateKey' > gh_ssh.key
+                 chmod 600 gh_ssh.key
+                 ssh-add gh_ssh.key
+               popd
+            - pushd $(shipctl get_resource_state "$RES_REPO")
+            - |
+               git remote add up $GIT_PATH
+               git remote -v
+               git checkout master
+            - |
+               git pull --tags
+               if git tag -d $TAG_VER; then
+                 git push --delete up $TAG_VER
+               fi
+            - |
+               git checkout $REPO_COMMIT
+               git tag $TAG_VER
+               git push up $TAG_VER
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$TAG_VER" "TAG_VER=$TAG_VER" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "WEB_URL=$WEB_URL" "S3_URL=$S3_URL" "TAR_FILENAME=$TAR_FILENAME" "ZIP_FILENAME=$ZIP_FILENAME"
