@@ -16,14 +16,12 @@ check_init_input() {
     'NODE_SHIPCTL_LOCATION'
     'NODE_ARCHITECTURE'
     'NODE_OPERATING_SYSTEM'
-    'LEGACY_CI_CEXEC_LOCATION_ON_HOST'
     'SHIPPABLE_RELEASE_VERSION'
     'SHIPPABLE_AMI_VERSION'
     'EXEC_IMAGE'
     'REQKICK_DIR'
     'IS_SWAP_ENABLED'
     'REQKICK_DOWNLOAD_URL'
-    'CEXEC_DOWNLOAD_URL'
     'REPORTS_DOWNLOAD_URL'
   )
 
@@ -227,33 +225,6 @@ install_ntp() {
   fi
 }
 
-fetch_cexec() {
-  __process_marker "Fetching cexec..."
-  local cexec_tar_file="cexec.tar.gz"
-
-  if [ -d "$LEGACY_CI_CEXEC_LOCATION_ON_HOST" ]; then
-    exec_cmd "rm -rf $LEGACY_CI_CEXEC_LOCATION_ON_HOST"
-  fi
-  rm -rf $cexec_tar_file
-  pushd /tmp
-    wget $CEXEC_DOWNLOAD_URL -O $cexec_tar_file
-    mkdir -p $LEGACY_CI_CEXEC_LOCATION_ON_HOST
-    tar -xzf $cexec_tar_file -C $LEGACY_CI_CEXEC_LOCATION_ON_HOST --strip-components=1
-    rm -rf $cexec_tar_file
-  popd
-
-  # Download and extract reports bin file into a path that cexec expects it in
-  local reports_dir="$LEGACY_CI_CEXEC_LOCATION_ON_HOST/bin"
-  local reports_tar_file="reports.tar.gz"
-  rm -rf $reports_dir
-  mkdir -p $reports_dir
-  pushd $reports_dir
-    wget $REPORTS_DOWNLOAD_URL -O $reports_tar_file
-    tar -xf $reports_tar_file
-    rm -rf $reports_tar_file
-  popd
-}
-
 pull_reqProc() {
   __process_marker "Pulling reqProc..."
   docker pull $EXEC_IMAGE
@@ -312,9 +283,6 @@ main() {
 
   trap before_exit EXIT
   exec_grp "install_ntp"
-
-  trap before_exit EXIT
-  exec_grp "fetch_cexec"
 
   trap before_exit EXIT
   exec_grp "pull_reqProc"

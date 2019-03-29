@@ -46,43 +46,23 @@ check_input() {
 }
 
 export_envs() {
-  export SHIPPABLE_RUNTIME_DIR="/var/lib/shippable"
-  if [ "$NODE_TYPE_CODE" -eq 7001 ]; then
-    export BASE_UUID="$NODE_ID"
-    export BASE_DIR="$SHIPPABLE_RUNTIME_DIR"
-  else
-    export BASE_UUID="$(cat /proc/sys/kernel/random/uuid)"
-    export BASE_DIR="$SHIPPABLE_RUNTIME_DIR/$BASE_UUID"
-  fi
+  export BASE_DIR="/pipelines"
   export REQPROC_DIR="$BASE_DIR/reqProc"
   export REQEXEC_DIR="$BASE_DIR/reqExec"
   export REQEXEC_BIN_PATH="$REQEXEC_DIR/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
   export REQKICK_DIR="$BASE_DIR/reqKick"
   export REQKICK_SERVICE_DIR="$REQKICK_DIR/init/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM"
-  export REQKICK_CONFIG_DIR="/etc/shippable/reqKick"
-  export BUILD_DIR="$BASE_DIR/build"
-  export STATUS_DIR=$BUILD_DIR/status
-  export SCRIPTS_DIR=$BUILD_DIR/scripts
+  export REQKICK_CONFIG_DIR="/pipelines/config"
+  export RUN_DIR="$BASE_DIR/run"
+  export STATUS_DIR=$RUN_DIR/status
+  export SCRIPTS_DIR=$RUN_DIR/scripts
   # This is set while booting dynamic nodes
   export REQPROC_MOUNTS="$REQPROC_MOUNTS"
   export REQPROC_ENVS="$REQPROC_ENVS"
   export REQPROC_OPTS="$REQPROC_OPTS"
-  export REQPROC_CONTAINER_NAME_PATTERN="reqProc"
-  export EXEC_CONTAINER_NAME_PATTERN="shippable-exec"
-
-  if [ "$NODE_TYPE_CODE" -eq 7001 ]; then
-    export REQPROC_CONTAINER_NAME="$REQPROC_CONTAINER_NAME_PATTERN-$NODE_ID"
-  else
-    export REQPROC_CONTAINER_NAME="$REQPROC_CONTAINER_NAME_PATTERN-$BASE_UUID"
-  fi
-  export REQKICK_SERVICE_NAME_PATTERN="shippable-reqKick@"
-  export LEGACY_CI_CACHE_STORE_LOCATION="/home/shippable/cache"
-  export LEGACY_CI_KEY_STORE_LOCATION="/tmp/ssh"
-  export LEGACY_CI_MESSAGE_STORE_LOCATION="/tmp/cexec"
-  export LEGACY_CI_BUILD_LOCATION="/build"
-  export LEGACY_CI_CEXEC_LOCATION_ON_HOST="/home/shippable/cexec"
-  export LEGACY_CI_DOCKER_CLIENT_LATEST="/opt/docker/docker"
-  export DEFAULT_TASK_CONTAINER_MOUNTS="-v $BUILD_DIR:$BUILD_DIR \
+  export REQPROC_CONTAINER_NAME="reqProc"
+  export REQKICK_SERVICE_NAME="shippable-reqKick"
+  export DEFAULT_TASK_CONTAINER_MOUNTS="-v $RUN_DIR:$RUN_DIR \
     -v $REQEXEC_DIR:/reqExec"
   export TASK_CONTAINER_COMMAND="/reqExec/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
   export DEFAULT_TASK_CONTAINER_OPTIONS="-d --rm"
@@ -90,18 +70,11 @@ export_envs() {
 }
 
 setup_dirs() {
-  if [ "$NODE_TYPE_CODE" -ne 7001 ]; then
-    rm -rf $SHIPPABLE_RUNTIME_DIR
-  fi
   mkdir -p $BASE_DIR
   mkdir -p $REQPROC_DIR
   mkdir -p $REQEXEC_DIR
   mkdir -p $REQKICK_DIR
-  mkdir -p $BUILD_DIR
-  mkdir -p $LEGACY_CI_CACHE_STORE_LOCATION
-  mkdir -p $LEGACY_CI_KEY_STORE_LOCATION
-  mkdir -p $LEGACY_CI_MESSAGE_STORE_LOCATION
-  mkdir -p $LEGACY_CI_BUILD_LOCATION
+  mkdir -p $RUN_DIR
 }
 
 initialize() {
@@ -113,20 +86,16 @@ setup_mounts() {
   REQPROC_MOUNTS="$REQPROC_MOUNTS \
     -v $BASE_DIR:$BASE_DIR \
     -v /opt/docker/docker:/usr/bin/docker \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $LEGACY_CI_CACHE_STORE_LOCATION:$LEGACY_CI_CACHE_STORE_LOCATION:rw \
-    -v $LEGACY_CI_KEY_STORE_LOCATION:$LEGACY_CI_KEY_STORE_LOCATION:rw \
-    -v $LEGACY_CI_MESSAGE_STORE_LOCATION:$LEGACY_CI_MESSAGE_STORE_LOCATION:rw \
-    -v $LEGACY_CI_BUILD_LOCATION:$LEGACY_CI_BUILD_LOCATION:rw"
+    -v /var/run/docker.sock:/var/run/docker.sock"
 
   if [ "$IS_RESTRICTED_NODE" == "true" ]; then
     DEFAULT_TASK_CONTAINER_MOUNTS="$DEFAULT_TASK_CONTAINER_MOUNTS \
-      -v $NODE_SCRIPTS_LOCATION:/var/lib/shippable/node"
+      -v $NODE_SCRIPTS_LOCATION:/pipelines/node"
   else
     DEFAULT_TASK_CONTAINER_MOUNTS="$DEFAULT_TASK_CONTAINER_MOUNTS \
       -v /opt/docker/docker:/usr/bin/docker \
       -v /var/run/docker.sock:/var/run/docker.sock \
-      -v $NODE_SCRIPTS_LOCATION:/var/lib/shippable/node"
+      -v $NODE_SCRIPTS_LOCATION:/pipelines/node"
   fi
 }
 
@@ -145,17 +114,12 @@ setup_envs() {
     -e REQEXEC_DIR=$REQEXEC_DIR \
     -e REQEXEC_BIN_DIR=$REQEXEC_BIN_DIR \
     -e REQKICK_DIR=$REQKICK_DIR \
-    -e BUILD_DIR=$BUILD_DIR \
+    -e RUN_DIR=$RUN_DIR \
     -e REQPROC_CONTAINER_NAME=$REQPROC_CONTAINER_NAME \
     -e DEFAULT_TASK_CONTAINER_MOUNTS='$DEFAULT_TASK_CONTAINER_MOUNTS' \
     -e TASK_CONTAINER_COMMAND=$TASK_CONTAINER_COMMAND \
     -e DEFAULT_TASK_CONTAINER_OPTIONS='$DEFAULT_TASK_CONTAINER_OPTIONS' \
-    -e CACHE_STORE_LOCATION=$LEGACY_CI_CACHE_STORE_LOCATION \
-    -e KEY_STORE_LOCATION=$LEGACY_CI_KEY_STORE_LOCATION \
-    -e MESSAGE_STORE_LOCATION=$LEGACY_CI_MESSAGE_STORE_LOCATION \
-    -e BUILD_LOCATION=$LEGACY_CI_BUILD_LOCATION \
     -e EXEC_IMAGE=$EXEC_IMAGE \
-    -e DOCKER_CLIENT_LATEST=$LEGACY_CI_DOCKER_CLIENT_LATEST \
     -e SHIPPABLE_DOCKER_VERSION=$DOCKER_VERSION \
     -e IS_DOCKER_LEGACY=false \
     -e SHIPPABLE_NODE_ARCHITECTURE=$NODE_ARCHITECTURE \
@@ -195,23 +159,11 @@ setup_opts() {
     "
 }
 
-remove_genexec() {
-  __process_marker "Removing exisiting genexec containers..."
-
-  local running_container_ids=$(docker ps -a \
-    | grep $EXEC_CONTAINER_NAME_PATTERN \
-    | awk '{print $1}')
-
-  if [ ! -z "$running_container_ids" ]; then
-    docker rm -f -v $running_container_ids || true
-  fi
-}
-
 remove_reqProc() {
   __process_marker "Removing exisiting reqProc containers..."
 
   local running_container_ids=$(docker ps -a \
-    | grep $REQPROC_CONTAINER_NAME_PATTERN \
+    | grep $REQPROC_CONTAINER_NAME \
     | awk '{print $1}')
 
   if [ ! -z "$running_container_ids" ]; then
@@ -223,7 +175,7 @@ remove_reqKick() {
   __process_marker "Removing existing reqKick services..."
 
   local running_service_names=$(systemctl list-units -a \
-    | grep $REQKICK_SERVICE_NAME_PATTERN \
+    | grep $REQKICK_SERVICE_NAME \
     | awk '{ print $1 }')
 
   if [ ! -z "$running_service_names" ]; then
@@ -232,7 +184,7 @@ remove_reqKick() {
   fi
 
   rm -rf $REQKICK_CONFIG_DIR
-  rm -f /etc/systemd/system/shippable-reqKick@.service
+  rm -f /etc/systemd/system/$REQKICK_SERVICE_NAME.service
 
   systemctl daemon-reload
 }
@@ -249,15 +201,11 @@ boot_reqKick() {
 
   mkdir -p $REQKICK_CONFIG_DIR
 
-  cp $REQKICK_SERVICE_DIR/shippable-reqKick@.service.template /etc/systemd/system/shippable-reqKick@.service
-  chmod 644 /etc/systemd/system/shippable-reqKick@.service
+  cp "$REQKICK_SERVICE_DIR"/"$REQKICK_SERVICE_NAME".service.template /etc/systemd/system/"$REQKICK_SERVICE_NAME".service
+  chmod 644 /etc/systemd/system/"$REQKICK_SERVICE_NAME".service
 
-  if [ "$NODE_TYPE_CODE" -eq 7001 ]; then
-    sed -i "s#/var/lib/shippable/%i/reqKick/reqKick.app.js#/var/lib/shippable/reqKick/reqKick.app.js#g" /etc/systemd/system/shippable-reqKick@.service
-  fi
-
-  local reqkick_env_template=$REQKICK_SERVICE_DIR/shippable-reqKick.env.template
-  local reqkick_env_file=$REQKICK_CONFIG_DIR/$BASE_UUID.env
+  local reqkick_env_template=$REQKICK_SERVICE_DIR/$REQKICK_SERVICE_NAME.env.template
+  local reqkick_env_file=$REQKICK_CONFIG_DIR/reqKick.env
   touch $reqkick_env_file
   sed "s#{{STATUS_DIR}}#$STATUS_DIR#g" $reqkick_env_template > $reqkick_env_file
   sed -i "s#{{SCRIPTS_DIR}}#$SCRIPTS_DIR#g" $reqkick_env_file
@@ -271,17 +219,16 @@ boot_reqKick() {
   sed -i "s#{{SHIPPABLE_API_URL}}#$SHIPPABLE_API_URL#g" $reqkick_env_file
 
   systemctl daemon-reload
-  systemctl enable shippable-reqKick@$BASE_UUID.service
-  systemctl start shippable-reqKick@$BASE_UUID.service
+  systemctl enable $REQKICK_SERVICE_NAME.service
+  systemctl start $REQKICK_SERVICE_NAME.service
 
   {
-    echo "Checking if shippable-reqKick@$BASE_UUID.service is active"
-    local check_reqKick_is_active=$(systemctl is-active shippable-reqKick@$BASE_UUID.service)
-    echo "shippable-reqKick@$BASE_UUID.service is $check_reqKick_is_active"
-  } ||
-  {
-    echo "shippable-reqKick@$BASE_UUID.service failed to start"
-    journalctl -n 100 -u shippable-reqKick@$BASE_UUID.service
+    echo "Checking if $REQKICK_SERVICE_NAME.service is active"
+    local check_reqKick_is_active=$(systemctl is-active $REQKICK_SERVICE_NAME.service)
+    echo "$REQKICK_SERVICE_NAME.service is $check_reqKick_is_active"
+  } || {
+    echo "$REQKICK_SERVICE_NAME.service failed to start"
+    journalctl -n 100 -u $REQKICK_SERVICE_NAME.service
     popd
     exit 1
   }
@@ -321,9 +268,6 @@ main() {
 
   trap before_exit EXIT
   exec_grp "setup_opts"
-
-  trap before_exit EXIT
-  exec_grp "remove_genexec"
 
   trap before_exit EXIT
   exec_grp "remove_reqProc"

@@ -28,12 +28,6 @@ export REQPROC_CONTAINER_NAME_PATTERN="reqProc"
 export EXEC_CONTAINER_NAME_PATTERN="shippable-exec"
 export REQPROC_CONTAINER_NAME="$REQPROC_CONTAINER_NAME_PATTERN-$BASE_UUID"
 export REQKICK_SERVICE_NAME_PATTERN="shippable-reqKick@"
-export LEGACY_CI_CACHE_STORE_LOCATION="/home/shippable/cache"
-export LEGACY_CI_KEY_STORE_LOCATION="/tmp/ssh"
-export LEGACY_CI_MESSAGE_STORE_LOCATION="/tmp/cexec"
-export LEGACY_CI_BUILD_LOCATION="/build"
-export LEGACY_CI_CEXEC_LOCATION_ON_HOST="/home/shippable/cexec"
-export LEGACY_CI_DOCKER_CLIENT_LATEST="/opt/docker/docker"
 export DEFAULT_TASK_CONTAINER_MOUNTS="-v $BUILD_DIR:$BUILD_DIR \
   -v $REQEXEC_DIR:/reqExec"
 export TASK_CONTAINER_COMMAND="/reqExec/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
@@ -233,19 +227,11 @@ setup_mounts() {
   mkdir -p $REQEXEC_DIR
   mkdir -p $REQKICK_DIR
   mkdir -p $BUILD_DIR
-  mkdir -p $LEGACY_CI_CACHE_STORE_LOCATION
-  mkdir -p $LEGACY_CI_KEY_STORE_LOCATION
-  mkdir -p $LEGACY_CI_MESSAGE_STORE_LOCATION
-  mkdir -p $LEGACY_CI_BUILD_LOCATION
 
   REQPROC_MOUNTS="$REQPROC_MOUNTS \
     -v $BASE_DIR:$BASE_DIR \
     -v /opt/docker/docker:/usr/bin/docker \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $LEGACY_CI_CACHE_STORE_LOCATION:$LEGACY_CI_CACHE_STORE_LOCATION:rw \
-    -v $LEGACY_CI_KEY_STORE_LOCATION:$LEGACY_CI_KEY_STORE_LOCATION:rw \
-    -v $LEGACY_CI_MESSAGE_STORE_LOCATION:$LEGACY_CI_MESSAGE_STORE_LOCATION:rw \
-    -v $LEGACY_CI_BUILD_LOCATION:$LEGACY_CI_BUILD_LOCATION:rw"
+    -v /var/run/docker.sock:/var/run/docker.sock"
 
   if [ "$IS_RESTRICTED_NODE" == "true" ]; then
     DEFAULT_TASK_CONTAINER_MOUNTS="$DEFAULT_TASK_CONTAINER_MOUNTS \
@@ -278,12 +264,7 @@ setup_envs() {
     -e DEFAULT_TASK_CONTAINER_MOUNTS='$DEFAULT_TASK_CONTAINER_MOUNTS' \
     -e TASK_CONTAINER_COMMAND=$TASK_CONTAINER_COMMAND \
     -e DEFAULT_TASK_CONTAINER_OPTIONS='$DEFAULT_TASK_CONTAINER_OPTIONS' \
-    -e CACHE_STORE_LOCATION=$LEGACY_CI_CACHE_STORE_LOCATION \
-    -e KEY_STORE_LOCATION=$LEGACY_CI_KEY_STORE_LOCATION \
-    -e MESSAGE_STORE_LOCATION=$LEGACY_CI_MESSAGE_STORE_LOCATION \
-    -e BUILD_LOCATION=$LEGACY_CI_BUILD_LOCATION \
     -e EXEC_IMAGE=$EXEC_IMAGE \
-    -e DOCKER_CLIENT_LATEST=$LEGACY_CI_DOCKER_CLIENT_LATEST \
     -e SHIPPABLE_DOCKER_VERSION=$DOCKER_VERSION \
     -e IS_DOCKER_LEGACY=false \
     -e SHIPPABLE_NODE_ARCHITECTURE=$NODE_ARCHITECTURE \
@@ -369,33 +350,6 @@ remove_reqKick() {
   rm -f /etc/systemd/system/shippable-reqKick@.service
 
   systemctl daemon-reload
-}
-
-fetch_cexec() {
-  __process_marker "Fetching cexec..."
-  local cexec_tar_file="cexec.tar.gz"
-
-  if [ -d "$LEGACY_CI_CEXEC_LOCATION_ON_HOST" ]; then
-    exec_cmd "rm -rf $LEGACY_CI_CEXEC_LOCATION_ON_HOST"
-  fi
-  rm -rf $cexec_tar_file
-  pushd /tmp
-    wget $CEXEC_DOWNLOAD_URL -O $cexec_tar_file
-    mkdir -p $LEGACY_CI_CEXEC_LOCATION_ON_HOST
-    tar -xzf $cexec_tar_file -C $LEGACY_CI_CEXEC_LOCATION_ON_HOST --strip-components=1
-    rm -rf $cexec_tar_file
-  popd
-
-  # Download and extract reports bin file into a path that cexec expects it in
-  local reports_dir="$LEGACY_CI_CEXEC_LOCATION_ON_HOST/bin"
-  local reports_tar_file="reports.tar.gz"
-  rm -rf $reports_dir
-  mkdir -p $reports_dir
-  pushd $reports_dir
-    wget $REPORTS_DOWNLOAD_URL -O $reports_tar_file
-    tar -xf $reports_tar_file
-    rm -rf $reports_tar_file
-  popd
 }
 
 boot_reqProc() {
@@ -515,9 +469,6 @@ main() {
 
   trap before_exit EXIT
   exec_grp "remove_reqKick"
-
-  trap before_exit EXIT
-  exec_grp "fetch_cexec"
 
   trap before_exit EXIT
   exec_grp "boot_reqProc"
