@@ -236,21 +236,21 @@ install_ntp() {
 
 pull_reqProc() {
   __process_marker "Pulling reqProc..."
-  docker pull $EXEC_IMAGE
+
+  __process_marker "Build reqProc image for now..."
+  # TODO: pull reqProc image when it is pushed to a repository
+  #docker pull $EXEC_IMAGE
 }
 
 fetch_reqKick() {
   __process_marker "Fetching reqKick..."
-  local reqKick_tar_file="reqKick.tar.gz"
 
   rm -rf $REQKICK_DIR
   rm -rf $reqKick_tar_file
-  pushd /tmp
-    wget $REQKICK_DOWNLOAD_URL -O $reqKick_tar_file
-    mkdir -p $REQKICK_DIR
-    tar -xzf $reqKick_tar_file -C $REQKICK_DIR --strip-components=1
-    rm -rf $reqKick_tar_file
-  popd
+
+  # TODO: fetch this from a tarball, when it exists
+  git clone https://github.com/Shippable/kermit-reqKick.git $REQKICK_DIR
+
   pushd $REQKICK_DIR
     npm install
   popd
