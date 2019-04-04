@@ -107,7 +107,6 @@ setup_envs() {
     -e LISTEN_QUEUE=$LISTEN_QUEUE \
     -e NODE_ID=$NODE_ID \
     -e RUN_MODE=$RUN_MODE \
-    -e SUBSCRIPTION_ID=$SUBSCRIPTION_ID \
     -e NODE_TYPE_CODE=$NODE_TYPE_CODE \
     -e BASE_DIR=$BASE_DIR \
     -e REQPROC_DIR=$REQPROC_DIR \
@@ -212,7 +211,7 @@ boot_reqKick() {
   sed -i "s#{{REQEXEC_BIN_PATH}}#$REQEXEC_BIN_PATH#g" $reqkick_env_file
   sed -i "s#{{RUN_MODE}}#$RUN_MODE#g" $reqkick_env_file
   sed -i "s#{{NODE_ID}}#$NODE_ID#g" $reqkick_env_file
-  sed -i "s#{{SUBSCRIPTION_ID}}#$SUBSCRIPTION_ID#g" $reqkick_env_file
+  sed -i "s#{{PROJECT_ID}}#$PROJECT_ID#g" $reqkick_env_file
   sed -i "s#{{NODE_TYPE_CODE}}#$NODE_TYPE_CODE#g" $reqkick_env_file
   sed -i "s#{{SHIPPABLE_NODE_ARCHITECTURE}}#$NODE_ARCHITECTURE#g" $reqkick_env_file
   sed -i "s#{{SHIPPABLE_NODE_OPERATING_SYSTEM}}#$NODE_OPERATING_SYSTEM#g" $reqkick_env_file
