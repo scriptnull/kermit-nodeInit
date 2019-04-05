@@ -238,8 +238,7 @@ pull_reqProc() {
   __process_marker "Pulling reqProc..."
 
   __process_marker "Build reqProc image for now..."
-  # TODO: pull reqProc image when it is pushed to a repository
-  #docker pull $EXEC_IMAGE
+  docker pull $EXEC_IMAGE
 }
 
 fetch_reqKick() {
