@@ -16,7 +16,6 @@ fi
 
 check_init_input() {
   local expected_envs=(
-    'NODE_SHIPCTL_LOCATION'
     'NODE_ARCHITECTURE'
     'NODE_OPERATING_SYSTEM'
     'SHIPPABLE_RELEASE_VERSION'
@@ -78,11 +77,13 @@ install_prereqs() {
   exec_cmd "$check_node_version_cmd"
   popd
 
-  echo "Installing shipctl components"
-
   install_epel_release_cmd="yum -y install epel-release"
   exec_cmd "$install_epel_release_cmd"
-  exec_cmd "$NODE_SHIPCTL_LOCATION/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/install.sh"
+
+  if ! [ -x "$(command -v jq)" ]; then
+    echo "Installing jq"
+    yum install -y jq
+  fi
 
 }
 

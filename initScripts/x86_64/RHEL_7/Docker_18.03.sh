@@ -90,8 +90,6 @@ install_prereqs() {
   exec_cmd "$check_node_version_cmd"
   popd
 
-  echo "Installing shipctl components"
-
   remove_existing_epel_release='yum remove -y epel-release-7-11 || true'
   exec_cmd "$remove_existing_epel_release"
 
@@ -99,8 +97,11 @@ install_prereqs() {
   exec_cmd "$get_epel_repo_rpm"
   install_epel_release_cmd="yum install -y epel-release-latest-7.noarch.rpm"
   exec_cmd "$install_epel_release_cmd"
-  exec_cmd "$NODE_SHIPCTL_LOCATION/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/install.sh"
 
+  if ! [ -x "$(command -v jq)" ]; then
+    echo "Installing jq"
+    yum install -y jq
+  fi
 }
 
 check_swap() {

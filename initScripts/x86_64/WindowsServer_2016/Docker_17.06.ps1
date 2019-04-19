@@ -43,9 +43,6 @@ Function install_prereqs() {
 
   Write-Output "Refreshing PATH"
   $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-  Write-Output "Installing shipctl from $NODE_SHIPCTL_LOCATION"
-  & "$NODE_SHIPCTL_LOCATION/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/install.ps1"
 }
 
 Function add_firewall_rule() {
