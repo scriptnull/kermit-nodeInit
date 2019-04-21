@@ -27,6 +27,7 @@ export REQPROC_OPTS=""
 export REQPROC_CONTAINER_NAME_PATTERN="reqProc"
 export REQPROC_CONTAINER_NAME="$REQPROC_CONTAINER_NAME_PATTERN-$BASE_UUID"
 export REQKICK_SERVICE_NAME_PATTERN="shippable-reqKick@"
+export REPORTS_BINARY_LOCATION_ON_HOST="/pipelines/reports"
 export DEFAULT_TASK_CONTAINER_MOUNTS="-v $BUILD_DIR:$BUILD_DIR \
   -v $REQEXEC_DIR:/reqExec"
 export TASK_CONTAINER_COMMAND="/reqExec/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
@@ -354,6 +355,20 @@ remove_reqKick() {
   systemctl daemon-reload
 }
 
+fetch_reports_binary() {
+  __process_marker "Installing report parser..."
+
+  local reports_dir="$REPORTS_BINARY_LOCATION_ON_HOST"
+  local reports_tar_file="reports.tar.gz"
+  rm -rf $reports_dir
+  mkdir -p $reports_dir
+  pushd $reports_dir
+    wget $REPORTS_DOWNLOAD_URL -O $reports_tar_file
+    tar -xf $reports_tar_file
+    rm -rf $reports_tar_file
+  popd
+}
+
 enable_32_bit_builds() {
   __process_marker "Adding files to run 32-bit builds"
 
@@ -481,6 +496,9 @@ main() {
 
   trap before_exit EXIT
   exec_grp "remove_reqKick"
+
+  trap before_exit EXIT
+  exec_grp "fetch_reports_binary"
 
   if [ "$HOST_ARCHITECTURE" == "aarch64" ]; then
     trap before_exit EXIT
