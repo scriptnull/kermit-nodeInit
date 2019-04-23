@@ -238,7 +238,6 @@ install_ntp() {
 pull_reqProc() {
   __process_marker "Pulling reqProc..."
 
-  __process_marker "Build reqProc image for now..."
   docker pull $EXEC_IMAGE
 }
 
