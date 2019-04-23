@@ -239,6 +239,20 @@ install_ntp() {
   fi
 }
 
+fetch_reports_binary() {
+  __process_marker "Installing report parser..."
+
+  local reports_dir="/pipelines/reports"
+  local reports_tar_file="reports.tar.gz"
+  rm -rf $reports_dir
+  mkdir -p $reports_dir
+  pushd $reports_dir
+    wget $REPORTS_DOWNLOAD_URL -O $reports_tar_file
+    tar -xf $reports_tar_file
+    rm -rf $reports_tar_file
+  popd
+}
+
 pull_reqProc() {
   __process_marker "Pulling reqProc..."
   docker pull $EXEC_IMAGE
@@ -319,6 +333,9 @@ main() {
 
     trap before_exit EXIT
     exec_grp "install_ntp"
+
+    trap before_exit EXIT
+    exec_grp "fetch_reports_binary"
 
     trap before_exit EXIT
     exec_grp "pull_reqProc"
