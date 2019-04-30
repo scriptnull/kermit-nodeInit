@@ -45,24 +45,21 @@ check_input() {
 }
 
 export_envs() {
-  export BASE_DIR="/pipelines"
+  export BASE_DIR="/jfrog"
   export REQPROC_DIR="$BASE_DIR/reqProc"
   export REQEXEC_DIR="$BASE_DIR/reqExec"
   export REQEXEC_BIN_PATH="$REQEXEC_DIR/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
   export REQKICK_DIR="$BASE_DIR/reqKick"
   export REQKICK_SERVICE_DIR="$REQKICK_DIR/init/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM"
-  export REQKICK_CONFIG_DIR="/pipelines/config"
-  export RUN_DIR="$BASE_DIR/run"
-  export STATUS_DIR=$RUN_DIR/status
-  export SCRIPTS_DIR=$RUN_DIR/scripts
+  export REQKICK_CONFIG_DIR="$BASE_DIR/config"
+  export STATUS_DIR="$BASE_DIR/status"
+  export SCRIPTS_DIR="$BASE_DIR/scripts"
   # This is set while booting dynamic nodes
   export REQPROC_MOUNTS="$REQPROC_MOUNTS"
   export REQPROC_ENVS="$REQPROC_ENVS"
   export REQPROC_OPTS="$REQPROC_OPTS"
   export REQPROC_CONTAINER_NAME="reqProc"
   export REQKICK_SERVICE_NAME="shippable-reqKick"
-  export DEFAULT_TASK_CONTAINER_MOUNTS="-v $RUN_DIR:$RUN_DIR \
-    -v $REQEXEC_DIR:/reqExec"
   export TASK_CONTAINER_COMMAND="/reqExec/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
   export DEFAULT_TASK_CONTAINER_OPTIONS="-d --rm"
   export DOCKER_VERSION="$(sudo docker version --format {{.Server.Version}})"
@@ -73,7 +70,6 @@ setup_dirs() {
   mkdir -p $REQPROC_DIR
   mkdir -p $REQEXEC_DIR
   mkdir -p $REQKICK_DIR
-  mkdir -p $RUN_DIR
 }
 
 initialize() {
@@ -86,16 +82,6 @@ setup_mounts() {
     -v $BASE_DIR:$BASE_DIR \
     -v /opt/docker/docker:/usr/bin/docker \
     -v /var/run/docker.sock:/var/run/docker.sock"
-
-  if [ "$IS_RESTRICTED_NODE" == "true" ]; then
-    DEFAULT_TASK_CONTAINER_MOUNTS="$DEFAULT_TASK_CONTAINER_MOUNTS \
-      -v $NODE_SCRIPTS_LOCATION:/pipelines/node"
-  else
-    DEFAULT_TASK_CONTAINER_MOUNTS="$DEFAULT_TASK_CONTAINER_MOUNTS \
-      -v /opt/docker/docker:/usr/bin/docker \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v $NODE_SCRIPTS_LOCATION:/pipelines/node"
-  fi
 }
 
 setup_envs() {
@@ -112,9 +98,7 @@ setup_envs() {
     -e REQEXEC_DIR=$REQEXEC_DIR \
     -e REQEXEC_BIN_DIR=$REQEXEC_BIN_DIR \
     -e REQKICK_DIR=$REQKICK_DIR \
-    -e RUN_DIR=$RUN_DIR \
     -e REQPROC_CONTAINER_NAME=$REQPROC_CONTAINER_NAME \
-    -e DEFAULT_TASK_CONTAINER_MOUNTS='$DEFAULT_TASK_CONTAINER_MOUNTS' \
     -e TASK_CONTAINER_COMMAND=$TASK_CONTAINER_COMMAND \
     -e DEFAULT_TASK_CONTAINER_OPTIONS='$DEFAULT_TASK_CONTAINER_OPTIONS' \
     -e EXEC_IMAGE=$EXEC_IMAGE \

@@ -238,7 +238,7 @@ install_ntp() {
 fetch_reports_binary() {
   __process_marker "Installing report parser..."
 
-  local reports_dir="/pipelines/reports"
+  local reports_dir="/jfrog/reports"
   local reports_tar_file="reports.tar.gz"
   rm -rf $reports_dir
   mkdir -p $reports_dir
