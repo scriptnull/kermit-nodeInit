@@ -252,7 +252,10 @@ fetch_reports_binary() {
 pull_reqProc() {
   __process_marker "Pulling reqProc..."
 
-  docker pull $EXEC_IMAGE
+#  docker pull $EXEC_IMAGE
+pushd ~/x/kermit-reqProc
+  sudo docker build -t "drydock/kermit-u16reqproc:master" -f image/x86_64/Ubuntu_16.04/Dockerfile .
+popd
 }
 
 fetch_reqKick() {
