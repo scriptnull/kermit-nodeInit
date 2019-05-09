@@ -254,7 +254,9 @@ pull_reqProc() {
 
 #  docker pull $EXEC_IMAGE
 pushd ~/x/kermit-reqProc
-  sudo docker build -t "drydock/kermit-u16reqproc:master" -f image/x86_64/Ubuntu_16.04/Dockerfile .
+  local dockerfile_path="image/x86_64/Ubuntu_16.04/Dockerfile"
+  sed -i 's/{{%TAG%}}/master/g' $dockerfile_path
+  sudo docker build -t "drydock/kermit-u16reqproc:master" -f $dockerfile_path .
 popd
 }
 
