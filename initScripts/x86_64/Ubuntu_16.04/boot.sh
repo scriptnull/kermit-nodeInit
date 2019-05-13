@@ -6,7 +6,7 @@ set -o pipefail
 readonly SHIPPABLE_DIR="/jfrog/config"
 
 # Logs
-readonly LOGS_DIR="$SHIPPABLE_DIR/logs"
+readonly LOGS_DIR="/jfrog/logs"
 readonly TIMESTAMP="$(date +%Y_%m_%d_%H:%M:%S)"
 readonly LOG_FILE="$LOGS_DIR/${TIMESTAMP}_logs.txt"
 readonly MAX_DEFAULT_LOG_COUNT=5
