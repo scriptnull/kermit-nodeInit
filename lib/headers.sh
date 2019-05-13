@@ -30,9 +30,3 @@ exec_grp() {
   group_status=$?
   __process_marker "Completed $group_name"
 }
-
-setup_directories() {
-  exec_cmd "mkdir -p '$MESSAGE_STORE_LOCATION'"
-  exec_cmd "mkdir -p '$KEY_STORE_LOCATION'"
-  exec_cmd "mkdir -p '$BUILD_LOCATION'"
-}
