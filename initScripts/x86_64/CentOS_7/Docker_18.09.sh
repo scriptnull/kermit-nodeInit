@@ -2,11 +2,13 @@
 set -e
 set -o pipefail
 
-# initScript for CentOS_7 and Docker 17.06
+# initScript for CentOS_7 and Docker 18.09.6
 # ------------------------------------------------------------------------------
 
-readonly DOCKER_VERSION="17.06.0"
+readonly DOCKER_VERSION="18.09.6"
 readonly SWAP_FILE_PATH="/root/.__sh_swap__"
+readonly NODE_ARCHITECTURE="x86_64"
+readonly NODE_OPERATING_SYSTEM="CentOS_7"
 export docker_restart=false
 export install_docker_only="$install_docker_only"
 
@@ -28,11 +30,6 @@ check_init_input() {
   )
 
   check_envs "${expected_envs[@]}"
-}
-
-create_shippable_dir() {
-  create_dir_cmd="mkdir -p /home/shippable"
-  exec_cmd "$create_dir_cmd"
 }
 
 install_docker_prereqs() {
@@ -149,13 +146,13 @@ initialize_swap() {
 docker_install() {
   echo "Installing docker"
 
-  install_docker="yum -y install docker-ce-$DOCKER_VERSION.ce"
+  install_docker="yum -y install docker-ce-$DOCKER_VERSION"
   exec_cmd "$install_docker"
 
-  get_static_docker_binary="wget https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION-ce.tgz -P /tmp/docker"
+  get_static_docker_binary="wget https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz -P /tmp/docker"
   exec_cmd "$get_static_docker_binary"
 
-  extract_static_docker_binary="tar -xzf /tmp/docker/docker-$DOCKER_VERSION-ce.tgz --directory /opt"
+  extract_static_docker_binary="tar -xzf /tmp/docker/docker-$DOCKER_VERSION.tgz --directory /opt"
   exec_cmd "$extract_static_docker_binary"
 
   remove_static_docker_binary='rm -rf /tmp/docker'
@@ -242,7 +239,7 @@ install_ntp() {
 fetch_reports_binary() {
   __process_marker "Installing report parser..."
 
-  local reports_dir="/pipelines/reports"
+  local reports_dir="/jfrog/reports"
   local reports_tar_file="reports.tar.gz"
   rm -rf $reports_dir
   mkdir -p $reports_dir
@@ -302,9 +299,6 @@ main() {
     exec_grp "restart_docker_service"
   else
     check_init_input
-
-    trap before_exit EXIT
-    exec_grp "create_shippable_dir"
 
     trap before_exit EXIT
     exec_grp "install_docker_prereqs"
