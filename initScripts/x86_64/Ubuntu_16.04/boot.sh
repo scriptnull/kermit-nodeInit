@@ -5,12 +5,6 @@ set -o pipefail
 # Main directories
 readonly SHIPPABLE_DIR="/jfrog/config"
 
-# Logs
-readonly LOGS_DIR="$SHIPPABLE_DIR/logs"
-readonly TIMESTAMP="$(date +%Y_%m_%d_%H:%M:%S)"
-readonly LOG_FILE="$LOGS_DIR/${TIMESTAMP}_logs.txt"
-readonly MAX_DEFAULT_LOG_COUNT=5
-
 # Node ENVs
 readonly NODE_ENV="$SHIPPABLE_DIR/nodeInit.env"
 source $NODE_ENV

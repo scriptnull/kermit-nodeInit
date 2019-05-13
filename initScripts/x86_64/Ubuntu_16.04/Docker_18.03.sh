@@ -30,11 +30,6 @@ check_init_input() {
   check_envs "${expected_envs[@]}"
 }
 
-create_shippable_dir() {
-  create_dir_cmd="mkdir -p /home/shippable"
-  exec_cmd "$create_dir_cmd"
-}
-
 install_docker_prereqs() {
   echo "Installing docker prerequisites"
 
@@ -257,13 +252,16 @@ pull_reqProc() {
 
 fetch_reqKick() {
   __process_marker "Fetching reqKick..."
+  local reqKick_tar_file="reqKick.tar.gz"
 
   rm -rf $REQKICK_DIR
   rm -rf $reqKick_tar_file
-
-  # TODO: fetch this from a tarball, when it exists
-  git clone https://github.com/Shippable/kermit-reqKick.git $REQKICK_DIR
-
+  pushd /tmp
+    wget $REQKICK_DOWNLOAD_URL -O $reqKick_tar_file
+    mkdir -p $REQKICK_DIR
+    tar -xzf $reqKick_tar_file -C $REQKICK_DIR --strip-components=1
+    rm -rf $reqKick_tar_file
+  popd
   pushd $REQKICK_DIR
     npm install
   popd
@@ -296,9 +294,6 @@ main() {
     exec_grp "restart_docker_service"
   else
     check_init_input
-
-    trap before_exit EXIT
-    exec_grp "create_shippable_dir"
 
     trap before_exit EXIT
     exec_grp "install_docker_prereqs"
