@@ -47,7 +47,6 @@ export_envs() {
   export REQKICK_SERVICE_DIR="$REQKICK_DIR/init/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM"
   export REQKICK_CONFIG_DIR="$BASE_DIR/config"
   export STATUS_DIR="$BASE_DIR/status"
-  export SCRIPTS_DIR="$BASE_DIR/scripts"
   # This is set while booting dynamic nodes
   export REQPROC_MOUNTS="$REQPROC_MOUNTS"
   export REQPROC_ENVS="$REQPROC_ENVS"
@@ -187,7 +186,6 @@ boot_reqKick() {
   local reqkick_env_file=$REQKICK_CONFIG_DIR/reqKick.env
   touch $reqkick_env_file
   sed "s#{{STATUS_DIR}}#$STATUS_DIR#g" $reqkick_env_template > $reqkick_env_file
-  sed -i "s#{{SCRIPTS_DIR}}#$SCRIPTS_DIR#g" $reqkick_env_file
   sed -i "s#{{REQEXEC_BIN_PATH}}#$REQEXEC_BIN_PATH#g" $reqkick_env_file
   sed -i "s#{{RUN_MODE}}#$RUN_MODE#g" $reqkick_env_file
   sed -i "s#{{NODE_ID}}#$NODE_ID#g" $reqkick_env_file
