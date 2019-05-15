@@ -123,6 +123,7 @@ Function fetch_reqKick() {
   }
   mkdir -p $REQKICK_DIR
   Expand-Archive -LiteralPath $reqKick_zip_download_location -DestinationPath $REQKICK_DIR
+  Move-Item -Force $REQKICK_DIR\kermit-reqKick-master\* -Destination $REQKICK_DIR
 
   pushd $REQKICK_DIR
   npm install
