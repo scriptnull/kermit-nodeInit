@@ -2,10 +2,12 @@
 set -e
 set -o pipefail
 
-# initScript for Ubuntu 16.04 and Docker 18.03
+# initScript for Ubuntu 16.04 and Docker 18.09
 # ------------------------------------------------------------------------------
 
-readonly DOCKER_VERSION="18.03.1"
+readonly DOCKER_VERSION="18.09.6"
+readonly NODE_ARCHITECTURE="x86_64"
+readonly NODE_OPERATING_SYSTEM="Ubuntu_16.04"
 readonly SWAP_FILE_PATH="/root/.__sh_swap__"
 export docker_restart=false
 export install_docker_only="$install_docker_only"
@@ -140,13 +142,13 @@ initialize_swap() {
 docker_install() {
   echo "Installing docker"
 
-  install_docker="apt-get install -q --force-yes -y -o Dpkg::Options::='--force-confnew' docker-ce=$DOCKER_VERSION~ce-0~ubuntu"
+  install_docker="apt-get install -q --force-yes -y -o Dpkg::Options::='--force-confnew' docker-ce=5:$DOCKER_VERSION~3-0~ubuntu-$(lsb_release -cs) docker-ce-cli=5:$DOCKER_VERSION~3-0~ubuntu-$(lsb_release -cs)"
   exec_cmd "$install_docker"
 
-  get_static_docker_binary="wget https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION-ce.tgz -P /tmp/docker"
+  get_static_docker_binary="wget https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz -P /tmp/docker"
   exec_cmd "$get_static_docker_binary"
 
-  extract_static_docker_binary="tar -xzf /tmp/docker/docker-$DOCKER_VERSION-ce.tgz --directory /opt"
+  extract_static_docker_binary="tar -xzf /tmp/docker/docker-$DOCKER_VERSION.tgz --directory /opt"
   exec_cmd "$extract_static_docker_binary"
 
   remove_static_docker_binary='rm -rf /tmp/docker'
