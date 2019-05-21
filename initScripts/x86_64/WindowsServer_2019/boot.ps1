@@ -48,7 +48,7 @@ $REQKICK_SERVICE_NAME = "shippable-reqkick-$BASE_UUID"
 
 $BUILD_DIR = "$BASE_DIR\build"
 $CONTAINER_BUILD_DIR = "$CONTAINER_BASE_DIR\build"
-$STATUS_DIR = "$BUILD_DIR\status"
+$STATUS_DIR = "$BASE_DIR\status"
 $SCRIPTS_DIR = "$BUILD_DIR\scripts"
 
 $REQPROC_MOUNTS = ""
