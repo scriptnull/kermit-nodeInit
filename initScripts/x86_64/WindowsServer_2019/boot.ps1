@@ -149,7 +149,7 @@ Function setup_mounts() {
 
 Function setup_envs() {
   # Get docker NAT gateway ip address
-  $DOCKER_NAT_IP=(Get-NetIPConfiguration | Where-Object InterfaceAlias -eq "vEthernet (HNS Internal NIC)").IPv4Address.IPAddress
+  $DOCKER_NAT_IP=(docker network inspect nat --format="{{(index (index .).IPAM.Config 0).Gateway}}")
 
   $global:REQPROC_ENVS = " -e SHIPPABLE_AMQP_URL=$SHIPPABLE_AMQP_URL " + `
     "-e SHIPPABLE_AMQP_DEFAULT_EXCHANGE=$SHIPPABLE_AMQP_DEFAULT_EXCHANGE " + `
