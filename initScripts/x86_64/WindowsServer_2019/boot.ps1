@@ -48,7 +48,7 @@ $REQKICK_SERVICE_NAME = "shippable-reqkick-$BASE_UUID"
 
 $BUILD_DIR = "$BASE_DIR\build"
 $CONTAINER_BUILD_DIR = "$CONTAINER_BASE_DIR\build"
-$STATUS_DIR = "$BUILD_DIR\status"
+$STATUS_DIR = "$BASE_DIR\status"
 $SCRIPTS_DIR = "$BUILD_DIR\scripts"
 
 $REQPROC_MOUNTS = ""
@@ -149,7 +149,7 @@ Function setup_mounts() {
 
 Function setup_envs() {
   # Get docker NAT gateway ip address
-  $DOCKER_NAT_IP=(Get-NetIPConfiguration | Where-Object InterfaceAlias -eq "vEthernet (HNS Internal NIC)").IPv4Address.IPAddress
+  $DOCKER_NAT_IP=(docker network inspect nat --format="{{(index (index .).IPAM.Config 0).Gateway}}")
 
   $global:REQPROC_ENVS = " -e SHIPPABLE_AMQP_URL=$SHIPPABLE_AMQP_URL " + `
     "-e SHIPPABLE_AMQP_DEFAULT_EXCHANGE=$SHIPPABLE_AMQP_DEFAULT_EXCHANGE " + `
