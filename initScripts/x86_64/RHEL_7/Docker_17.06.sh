@@ -73,7 +73,7 @@ install_prereqs() {
   echo "Installing prerequisite binaries"
 
   pushd /tmp
-  local nodejs_version="8.11.3"
+  local nodejs_version="8.16.0"
   echo "Installing node $nodejs_version"
 
   get_node_tar_cmd="wget https://nodejs.org/dist/v$nodejs_version/node-v$nodejs_version-linux-x64.tar.xz"
