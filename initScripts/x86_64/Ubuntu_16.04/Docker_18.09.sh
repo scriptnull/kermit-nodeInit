@@ -52,7 +52,7 @@ install_docker_prereqs() {
 }
 
 install_prereqs() {
-  local nodejs_version="8.11.3"
+  local nodejs_version="8.16.0"
 
   echo "Installing prerequisite binaries"
 
