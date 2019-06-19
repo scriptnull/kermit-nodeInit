@@ -169,6 +169,7 @@ remove_reqKick() {
 boot_reqProc() {
   __process_marker "Booting up reqProc..."
 
+  EXEC_IMAGE="pipelines-docker.jfrog.io/jfrog/pipelines-u16reqproc:dev"
   local start_cmd="docker run $REQPROC_OPTS $REQPROC_MOUNTS $REQPROC_ENVS $EXEC_IMAGE"
   eval "$start_cmd"
 }
