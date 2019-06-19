@@ -256,6 +256,7 @@ fetch_reqKick() {
   rm -rf $REQKICK_DIR
   rm -rf $reqKick_tar_file
   pushd /tmp
+    REQKICK_DOWNLOAD_URL="https://github.com/scriptnull/kermit-reqKick/archive/systemNode.tar.gz"
     wget $REQKICK_DOWNLOAD_URL -O $reqKick_tar_file
     mkdir -p $REQKICK_DIR
     tar -xzf $reqKick_tar_file -C $REQKICK_DIR --strip-components=1
