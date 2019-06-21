@@ -189,14 +189,6 @@ Function setup_opts() {
     "--name=$REQPROC_CONTAINER_NAME "
 }
 
-Function boot_reqProc() {
-  Write-Output "Boot reqProc..."
-
-  $start_cmd = "docker run $global:REQPROC_OPTS $global:REQPROC_MOUNTS $global:REQPROC_ENVS $EXEC_IMAGE"
-  Write-Output "Executing docker run command: " $start_cmd
-  iex "$start_cmd"
-}
-
 Function boot_reqKick() {
   echo "Booting up reqKick service..."
 
@@ -217,6 +209,14 @@ Function boot_reqKick() {
   nssm start $REQKICK_SERVICE_NAME
 
   popd
+}
+
+Function boot_reqProc() {
+  Write-Output "Boot reqProc..."
+
+  $start_cmd = "docker run $global:REQPROC_OPTS $global:REQPROC_MOUNTS $global:REQPROC_ENVS $EXEC_IMAGE"
+  Write-Output "Executing docker run command: " $start_cmd
+  iex "$start_cmd"
 }
 
 Function cleanup() {
@@ -243,7 +243,7 @@ $DOCKER_VERSION = iex "docker version --format '{{.Server.Version}}'"
 setup_mounts
 setup_envs
 setup_opts
-boot_reqProc
 boot_reqKick
+boot_reqProc
 cleanup
 print_summary

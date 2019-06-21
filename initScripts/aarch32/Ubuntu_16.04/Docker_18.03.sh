@@ -388,13 +388,6 @@ enable_32_bit_builds() {
   cp -rf $temp_folder/* /lib/
 }
 
-boot_reqProc() {
-  __process_marker "Booting up reqProc..."
-  docker pull $EXEC_IMAGE
-  local start_cmd="docker run $REQPROC_OPTS $REQPROC_MOUNTS $REQPROC_ENVS $EXEC_IMAGE"
-  eval "$start_cmd"
-}
-
 boot_reqKick() {
   __process_marker "Booting up reqKick service..."
   local reqKick_tar_file="reqKick.tar.gz"
@@ -445,6 +438,13 @@ boot_reqKick() {
     exit 1
   }
   popd
+}
+
+boot_reqProc() {
+  __process_marker "Booting up reqProc..."
+  docker pull $EXEC_IMAGE
+  local start_cmd="docker run $REQPROC_OPTS $REQPROC_MOUNTS $REQPROC_ENVS $EXEC_IMAGE"
+  eval "$start_cmd"
 }
 
 before_exit() {
@@ -512,10 +512,10 @@ main() {
   fi
 
   trap before_exit EXIT
-  exec_grp "boot_reqProc"
+  exec_grp "boot_reqKick"
 
   trap before_exit EXIT
-  exec_grp "boot_reqKick"
+  exec_grp "boot_reqProc"
 }
 
 main
