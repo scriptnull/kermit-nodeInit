@@ -29,6 +29,8 @@ check_init_input() {
     'REPORTS_DOWNLOAD_URL'
     'EXECTEMPLATES_DIR'
     'REQEXEC_DIR'
+    'EXECTEMPLATES_DOWNLOAD_URL'
+    'REQEXEC_DOWNLOAD_URL'
   )
 
   check_envs "${expected_envs[@]}"
