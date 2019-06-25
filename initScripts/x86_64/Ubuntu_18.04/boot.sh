@@ -43,7 +43,8 @@ export_envs() {
   export BASE_DIR="/jfrog"
   export REQPROC_DIR="$BASE_DIR/reqProc"
   export REQEXEC_DIR="$BASE_DIR/reqExec"
-  export REQEXEC_BIN_PATH="$REQEXEC_DIR/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM/dist/main/main"
+  export EXECTEMPLATES_DIR="$BASE_DIR/execTemplates"
+  export REQEXEC_BIN_PATH="$REQEXEC_DIR/dist/main/main"
   export REQKICK_DIR="$BASE_DIR/reqKick"
   export REQKICK_SERVICE_DIR="$REQKICK_DIR/init/$NODE_ARCHITECTURE/$NODE_OPERATING_SYSTEM"
   export REQKICK_CONFIG_DIR="$BASE_DIR/config"
@@ -186,6 +187,7 @@ boot_reqKick() {
   sed -i "s#{{SHIPPABLE_NODE_ARCHITECTURE}}#$NODE_ARCHITECTURE#g" $reqkick_env_file
   sed -i "s#{{SHIPPABLE_NODE_OPERATING_SYSTEM}}#$NODE_OPERATING_SYSTEM#g" $reqkick_env_file
   sed -i "s#{{SHIPPABLE_API_URL}}#$SHIPPABLE_API_URL#g" $reqkick_env_file
+  sed -i "s#{{EXECTEMPLATES_DIR}}#$EXECTEMPLATES_DIR#g" $reqkick_env_file
 
   systemctl daemon-reload
   systemctl enable $REQKICK_SERVICE_NAME.service
